@@ -1,0 +1,15 @@
+/* 乽晉巑嶳乿 暥晹徣彞壧  娹扟彫攇嶌帉 */
+
+$E"SJIS";					T120L4O4
+
+$K"偁偨傑傪塤偺忋偵弌偟";	G.G8AGEC8D8E2		D.G8GF8E8D2.R
+$K"巐曽偺嶳傪尒偍傠偟偰";	G.G8ECA.B8>C<A		G.A8G8F8E8D8C2.R
+$K"偐傒側傝偝傑傪壓偵暦偔";	D.D8DDC8D8E8F8G2	A.B8>C<AG2.R
+$K"晉巑偼擔杮堦偺嶳";		>C2<AGE.E8AG		FED.C8C2.R
+
+$K"惵嬻崅偔偦傃偊棫偪";		G.G8AGEC8D8E2		D.G8GF8E8D2.R
+$K"偐傜偩偵愥偺拝暔拝偰";	G.G8ECA.B8>C<A		G.A8G8F8E8D8C2.R
+$K"夃偺偡偦傪墦偔塯偔";		D.D8DDC8D8E8F8G2	A.B8>C<AG2.R
+$K"晉巑偼擔杮堦偺嶳";		>C2<AGE.E8AG		FED.C8C2.R
+
+$K"";						R1R1

@@ -1,0 +1,1 @@
+..\..\..\tolset\z_tools\nask.exe ipl.asm ipl.bin ipl.lst

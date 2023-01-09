@@ -1,0 +1,17 @@
+/* 乽岎嬁嬋戞9斣 僯抁挷 "崌彞" op.125乿傛傝 Ludwig van Beethoven  旜嶈婌敧嶌帉 */
+
+$E"SJIS";							T110L4
+
+									O4
+$K"惏傟偨傞惵嬻  昚偆塤傛";			F+F+GA AGF+E DDEF+ F+.E8E2
+$K"彫捁偼壧偊傝  椦偵怷偵";			F+F+GA AGF+E DDEF+ E.D8D2
+$K"怱偼憉傗偐  婌傃枮偪偰";			EEF+D EF+8G8F+D EF+8G8F+E DE<A>
+$K"尒岎傢偡変傜偺  柧傞偒徫婄";		F+& F+F+GA AGF+E DDEF+ E.D8D2
+
+									O5
+$K"壴嶇偔媢傋偵  宔偊傞桭傛";		F+F+GA AGF+E DDEF+ F+.E8E2
+$K"悂偔晽憉傗偐  傒側偓傞梲幩偟";	F+F+GA AGF+E DDEF+ E.D8D2
+$K"怱偼壐傗偐  岾偣堨傟";			EEF+D EF+8G8F+D EF+8G8F+E DE<A>
+$K"嬁偔偼変傜偺  婌傃偺壧";			F+& F+F+GA AGF+E DDEF+ E.D8D2
+
+$K"";								R1

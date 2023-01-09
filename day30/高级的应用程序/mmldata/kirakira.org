@@ -1,0 +1,13 @@
+/* 乽偒傜偒傜惎乿 僼儔儞僗柉梬  晲幁墄巕嶌帉 */
+
+$E"SJIS";							T120L4O4
+
+$K"偒傜偒傜傂偐傞  偍嬻偺惎傛";		CCGGAAG2 FFEEDDC2
+$K"傑偽偨偒偟偰偼  傒傫側傪尒偰傞";	GGFFEED2 GGFFEED2
+$K"偒傜偒傜傂偐傞  偍嬻偺惎傛";		CCGGAAG2 FFEEDDC2
+$K"";								R1
+
+$K"偒傜偒傜傂偐傞  偍嬻偺惎傛";		CCGGAAG2 FFEEDDC2
+$K"傒傫側偺壧偑  撏偔偲偄偄側";		GGFFEED2 GGFFEED2
+$K"偒傜偒傜傂偐傞  偍嬻偺惎傛";		CCGGAAG2 FFEEDDC2
+$K"";								R1 R1

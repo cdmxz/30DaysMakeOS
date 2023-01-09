@@ -1,0 +1,287 @@
+#include <stdio.h>
+
+#define arrcount(array) (sizeof(array) / sizeof(array[0]))
+/* asmhead.nas */
+struct BOOTINFO
+{ /* 0x0ff0-0x0fff */
+    char cyls;
+    char leds;
+    char vmode;
+    char reserve;
+    short scrnx, scrny;
+    char *vram;
+};
+#define ADR_BOOTINFO 0x00000ff0
+
+/* naskfunc.nas */
+// 休眠（处理器进入暂停状态，不执行任何操作）
+void io_hlt(void);
+// 屏蔽中断
+void io_cli(void);
+// 开放中断
+void io_sti(void);
+// 开放中断然后休眠
+void io_stihlt(void);
+// 寄存器从外部设备读取数据
+int io_in8(int port);
+// 寄存器写入数据到外部设备
+void io_out8(int port, int data);
+//
+int io_load_eflags(void);
+void io_store_eflags(int eflags);
+void load_gdtr(int limit, int addr);
+void load_idtr(int limit, int addr);
+void asm_inthandler20(void);
+void asm_inthandler21(void);
+void asm_inthandler27(void);
+void asm_inthandler2c(void);
+int load_cr0(void);
+void store_cr0(int cr0);
+void farjmp(int eip, int cs);
+void load_tr(int tr);
+// 是内存检查处理的实现部分
+unsigned int memtest_sub(unsigned int start, unsigned int end);
+
+/* graphic.c */
+void init_palette(void);
+void set_palette(int start, int end, unsigned char *rgb);
+void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0, int x1, int y1);
+void init_screen8(char *vram, int x, int y);
+void putfont8(char *vram, int xsize, int x, int y, char c, char *font);
+void putfonts8_asc(char *vram, int xsize, int x, int y, char c, unsigned char *s);
+void init_mouse_cursor8(char *mouse, char bc);
+void putblock8_8(char *vram, int vxsize, int pxsize,
+                 int pysize, int px0, int py0, char *buf, int bxsize);
+#define COL8_000000 0
+#define COL8_FF0000 1
+#define COL8_00FF00 2
+#define COL8_FFFF00 3
+#define COL8_0000FF 4
+#define COL8_FF00FF 5
+#define COL8_00FFFF 6
+#define COL8_FFFFFF 7
+#define COL8_C6C6C6 8
+#define COL8_840000 9
+#define COL8_008400 10
+#define COL8_848400 11
+#define COL8_000084 12
+#define COL8_840084 13
+#define COL8_008484 14
+#define COL8_848484 15
+
+#define COL8_BLACK 0       // 黑色
+#define COL8_RED 1         // 纯红
+#define COL8_LIGHTGREEN 2  // 亮绿Lime
+#define COL8_YELLOW 3      // 纯黄
+#define COL8_BLUE 4        // 纯蓝
+#define COL8_LIGHTPURPLE 5 // 洋红色
+#define COL8_CYAN 6        // 浅亮蓝cyan
+#define COL8_WHITE 7       // 白色
+#define COL8_LIGHTGREY 8   // 亮灰 DarkGray
+#define COL8_DARKRED 9     // 暗红
+#define COL8_DARKGREEN 10  // 暗绿
+#define COL8_DARKYELLOW 11 // 暗黄
+#define COL8_DARKBLUE 12   // 暗蓝
+#define COL8_DARKPURPLE 13 // 暗紫
+#define COL8_DARKCYAN 14   // 浅暗蓝
+#define COL8_DARKGREY 15   // 暗灰
+
+/* dsctbl.c */
+struct SEGMENT_DESCRIPTOR
+{
+    short limit_low, base_low;
+    char base_mid, access_right;
+    char limit_high, base_high;
+};
+struct GATE_DESCRIPTOR
+{
+    short offset_low, selector;
+    char dw_count, access_right;
+    short offset_high;
+};
+void init_gdtidt(void);
+void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar);
+void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
+#define ADR_IDT			0x0026f800
+#define LIMIT_IDT		0x000007ff
+#define ADR_GDT			0x00270000
+#define LIMIT_GDT		0x0000ffff
+#define ADR_BOTPAK		0x00280000
+#define LIMIT_BOTPAK	0x0007ffff
+#define AR_DATA32_RW	0x4092
+#define AR_CODE32_ER	0x409a
+#define AR_TSS32		0x0089
+#define AR_INTGATE32	0x008e
+
+
+/* int.c */
+// 键盘中断缓冲区
+#define PORT_KEYDAT 0x0060
+void init_pic(void);
+void inthandler27(int *esp);
+#define PIC0_ICW1 0x0020
+#define PIC0_OCW2 0x0020
+#define PIC0_IMR 0x0021
+#define PIC0_ICW2 0x0021
+#define PIC0_ICW3 0x0021
+#define PIC0_ICW4 0x0021
+#define PIC1_ICW1 0x00a0
+#define PIC1_OCW2 0x00a0
+#define PIC1_IMR 0x00a1
+#define PIC1_ICW2 0x00a1
+#define PIC1_ICW3 0x00a1
+#define PIC1_ICW4 0x00a1
+
+// fifo.c
+
+struct FIFO32
+{
+    int* buf; // 缓冲区的地址
+    int p;              // 表下一个数据写入地址
+    int q;              // 下一个数据读出地址
+    int size;           // 缓冲区的总字节数
+    int free;           // 缓冲区里没有数据的字节数
+    int flags;          // 记录是否溢出 -1有溢出 0没有溢出
+    struct TASK* task;
+};
+
+#define FLAGS_OVERRUN 0x0001
+void fifo32_init(struct FIFO32* fifo, int size, int* buf, struct TASK* task);
+int fifo32_put(struct FIFO32* fifo, int data);
+int fifo32_get(struct FIFO32* fifo);
+int fifo32_status(struct FIFO32* fifo);
+
+// mouse.c
+#define KEYCMD_SENDTO_MOUSE 0xd4
+#define MOUSECMD_ENABLE 0xf4
+struct MOUSE_DEC
+{ // 每次从鼠标那里送过来的数据都应该是3个字节一组
+    unsigned char buf[3];
+    unsigned char phase; // 用来记住接收鼠标数据的工作进展到了什么阶段
+
+    int x, y, btn;
+};
+void enable_mouse(struct FIFO32* fifo, int data0, struct MOUSE_DEC* mdec);
+int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat);
+void inthandler2c(int *esp);
+
+// keyboard.c
+#define PORT_KEYDAT 0x0060
+#define PORT_KEYSTA 0x0064
+#define PORT_KEYCMD 0x0064
+#define KEYSTA_SEND_NOTREADY 0x02
+#define KEYCMD_WRITE_MODE 0x60
+#define KBC_MODE 0x47
+void inthandler21(int *esp);
+void wait_KBC_sendready(void);
+void init_keyboard(struct FIFO32* fifo, int data0);
+
+// memory.c
+#define MEMMAN_FREES 4090 /* 大约是32KB*/
+#define MEMMAN_ADDR 0x003c0000
+struct FREEINFO
+{ /* 可用信息 */
+    unsigned int addr, size;
+};
+struct MEMMAN
+{ /* 内存管理 */
+    int frees, maxfrees, lostsize, losts;
+    struct FREEINFO free[MEMMAN_FREES];
+};
+unsigned int memtest(unsigned int start, unsigned int end);
+void memman_init(struct MEMMAN *man);
+unsigned int memman_total(struct MEMMAN *man);
+unsigned int memman_alloc(struct MEMMAN *man, unsigned int size);
+int memman_free(struct MEMMAN *man, unsigned int addr, unsigned int size);
+unsigned int memman_alloc_4k(struct MEMMAN *man, unsigned int size);
+int memman_free_4k(struct MEMMAN *man, unsigned int addr, unsigned int size);
+
+// sheet.c
+#define MAX_SHEETS 256
+#define SHEET_USE 1
+
+struct SHEET
+{
+    unsigned char *buf;
+    int bxsize, bysize, vx0, vy0, col_inv, height, flags;
+    struct SHTCTL *ctl;
+};
+
+struct SHTCTL
+{
+    unsigned char *vram, *map;
+    int xsize, ysize, top;
+    struct SHEET *sheets[MAX_SHEETS];
+    struct SHEET sheets0[MAX_SHEETS];
+};
+
+struct SHTCTL *shtctl_init(struct MEMMAN *memman, unsigned char *vram, int xsize, int ysize);
+struct SHEET *sheet_alloc(struct SHTCTL *ctl);
+void sheet_setbuf(struct SHEET *sht, unsigned char *buf, int xsize, int ysize, int col_inv);
+void sheet_updown(struct SHEET *sht, int height);
+void sheet_refresh(struct SHEET *sht, int bx0, int by0, int bx1, int by1);
+void sheet_slide(struct SHEET *sht, int vx0, int vy0);
+void sheet_free(struct SHEET *sht);
+
+/* timer.c */
+#define MAX_TIMER 500
+
+struct TIMER {
+    struct TIMER* next;
+    unsigned int timeout, flags;
+    struct FIFO32* fifo;
+    int data;
+};
+//timer.next是指下一个定时器的地址
+//timerctl.next是指下一个超时的时刻
+struct TIMERCTL {
+    unsigned int count, next;
+    struct TIMER* t0;
+    struct TIMER timers0[MAX_TIMER];
+};
+extern struct TIMERCTL timerctl;
+
+void init_pit(void);
+struct TIMER *timer_alloc(void);
+void timer_free(struct TIMER *timer);
+void timer_init(struct TIMER* timer, struct FIFO32* fifo, int data);
+void timer_settime(struct TIMER *timer, unsigned int timeout);
+void inthandler20(int *esp);
+
+/* mtask.c */
+#define MAX_TASKS		1000	/* 嵟戝僞僗僋悢 */
+#define TASK_GDT0		3		/* TSS傪GDT偺壗斣偐傜妱傝摉偰傞偺偐 */
+#define MAX_TASKS_LV 100
+#define MAX_TASKLEVELS 10
+struct TSS32 {
+    int backlink, esp0, ss0, esp1, ss1, esp2, ss2, cr3;
+    int eip, eflags, eax, ecx, edx, ebx, esp, ebp, esi, edi;
+    int es, cs, ss, ds, fs, gs;
+    int ldtr, iomap;
+};
+struct TASK {
+    int sel, flags; /* se1用来存放GDT的编号*/
+    int level, priority;
+    struct TSS32 tss;
+};
+struct TASKLEVEL {
+    int running; /*正在运行的任务数量*/
+    int now; /*这个变量用来记录当前正在运行的是哪个任务*/
+    struct TASK* tasks[MAX_TASKS_LV];
+};
+struct TASKCTL {
+    int now_lv; /*现在活动中的LEVEL */
+    char lv_change; /*在下次任务切换时是否需要改变LEVEL */
+    struct TASKLEVEL level[MAX_TASKLEVELS];
+    struct TASK tasks0[MAX_TASKS];
+};
+extern struct TIMER* task_timer;
+struct TASK* task_init(struct MEMMAN* memman);
+struct TASK* task_alloc(void);
+void task_run(struct TASK* task, int level, int priority);
+void task_switch(void);
+void task_sleep(struct TASK* task);
+void task_switchsub(void);
+void task_remove(struct TASK* task);
+void task_add(struct TASK* task);
+struct TASK* task_now(void);
